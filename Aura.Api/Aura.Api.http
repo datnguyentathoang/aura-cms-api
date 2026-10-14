@@ -1,0 +1,29 @@
+@host = https://localhost:7186
+
+### 1. Đăng nhập
+# @name login
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "admin@gmail.com", "password": "123456" }
+
+### 2. Gọi API có token (phải ra danh sách)
+GET {{host}}/api/admin/features
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### 3. Làm mới token (phải ra cặp token mới)
+# @name refresh
+POST {{host}}/api/auth/refresh
+Content-Type: application/json
+
+{ "refresh_token": "{{login.response.body.$.refresh_token}}" }
+
+### 4. Dùng lại refresh token CŨ: phải ra 403 và phiên bị hủy
+POST {{host}}/api/auth/refresh
+Content-Type: application/json
+
+{ "refresh_token": "{{login.response.body.$.refresh_token}}" }
+
+### 5. Sau mục 4, access token mới cũng phải bị 401
+GET {{host}}/api/admin/features
+Authorization: Bearer {{refresh.response.body.$.access_token}}
