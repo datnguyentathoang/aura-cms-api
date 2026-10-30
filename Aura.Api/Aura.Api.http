@@ -27,3 +27,69 @@ Content-Type: application/json
 ### 5. Sau mục 4, access token mới cũng phải bị 401
 GET {{host}}/api/admin/features
 Authorization: Bearer {{refresh.response.body.$.access_token}}
+
+
+### A. Create a draft page
+# @name page
+POST {{host}}/api/admin/pages
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "title": "Về chúng tôi", "slug": "ve-chung-toi", "seo_title": "Về Aura", "seo_description": "Giới thiệu công ty" }
+
+### B. Add a rich_text section (the <script> must be removed in the response)
+# @name sec
+POST {{host}}/api/admin/pages/{{page.response.body.$.id}}/sections
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "type": "rich_text", "content": { "html": "<p>Xin chào</p><script>alert(1)</script>" } }
+
+### C. Draft page must NOT be public (expect 404)
+GET {{host}}/api/public/pages/ve-chung-toi
+
+### D. Publish
+POST {{host}}/api/admin/pages/{{page.response.body.$.id}}/publish
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### E. Now public (expect 200 with sections)
+GET {{host}}/api/public/pages/ve-chung-toi
+
+### F. Duplicate slug (expect 409)
+POST {{host}}/api/admin/pages
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "title": "Trùng", "slug": "ve-chung-toi" }
+
+### G. Reserved slug (expect 400)
+POST {{host}}/api/admin/pages
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "title": "Admin", "slug": "admin" }
+
+### H. Menu: parent "Giới thiệu" with a child pointing at the page
+# @name menu1
+POST {{host}}/api/admin/menu
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "label": "Giới thiệu" }
+
+###
+POST {{host}}/api/admin/menu
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "label": "Về chúng tôi", "parent_id": "{{menu1.response.body.$.id}}", "page_id": "{{page.response.body.$.id}}" }
+
+### I. Public menu tree
+GET {{host}}/api/public/menu
+
+### J. Bad URL (expect 400)
+POST {{host}}/api/admin/menu
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "label": "Xấu", "url": "javascript:alert(1)" }

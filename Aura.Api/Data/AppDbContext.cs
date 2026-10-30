@@ -15,6 +15,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
     public DbSet<AdminUser> AdminUsers => Set<AdminUser>();
     public DbSet<AdminSession> AdminSessions => Set<AdminSession>();
+    public DbSet<Page> Pages => Set<Page>();
+    public DbSet<PageSection> PageSections => Set<PageSection>();
+    public DbSet<MenuItem> MenuItems => Set<MenuItem>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -32,5 +35,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .HasMany(w => w.WorkflowSteps)
             .WithOne()
             .HasForeignKey(s => s.WorkflowId);
+
+        b.Entity<Page>(e =>
+        {
+            e.ToTable("pages");
+            e.HasMany(p => p.Sections).WithOne().HasForeignKey(s => s.PageId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<PageSection>(e =>
+        {
+            e.ToTable("page_sections");
+            e.Property(x => x.Content).HasColumnType("jsonb");
+        });
+        b.Entity<MenuItem>().ToTable("menu_items");
+
+
     }
 }
