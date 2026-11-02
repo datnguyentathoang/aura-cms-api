@@ -92,6 +92,7 @@ POST {{host}}/api/admin/menu
 Authorization: Bearer {{login.response.body.$.access_token}}
 Content-Type: application/json
 
+<<<<<<< HEAD
 { "label": "Xấu", "url": "javascript:alert(1)" }
 
 
@@ -170,3 +171,6 @@ Authorization: Bearer {{login.response.body.$.access_token}}
 ###
 GET {{host}}/api/admin/posts/{{post.response.body.$.id}}
 Authorization: Bearer {{login.response.body.$.access_token}}
+=======
+{ "label": "Xấu", "url": "javascript:alert(1)" }
+>>>>>>> e046f5d99ac2852aa2f0406657b3e51b75159b48

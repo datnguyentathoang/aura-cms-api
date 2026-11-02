@@ -148,6 +148,7 @@ public class MenuItem
     public string? Url { get; set; }
     public int SortOrder { get; set; }
     public bool IsPublished { get; set; } = true;
+<<<<<<< HEAD
 }
 public class Post
 {
@@ -185,4 +186,6 @@ public class PostCategory
     public Guid CategoryId { get; set; }
     public Post? Post { get; set; }
     public Category? Category { get; set; }
+=======
+>>>>>>> e046f5d99ac2852aa2f0406657b3e51b75159b48
 }
