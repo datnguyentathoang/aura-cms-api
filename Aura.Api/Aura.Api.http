@@ -1,0 +1,172 @@
+@host = https://localhost:7186
+
+### 1. Đăng nhập
+# @name login
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "admin@gmail.com", "password": "123456" }
+
+### 2. Gọi API có token (phải ra danh sách)
+GET {{host}}/api/admin/features
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### 3. Làm mới token (phải ra cặp token mới)
+# @name refresh
+POST {{host}}/api/auth/refresh
+Content-Type: application/json
+
+{ "refresh_token": "{{login.response.body.$.refresh_token}}" }
+
+### 4. Dùng lại refresh token CŨ: phải ra 403 và phiên bị hủy
+POST {{host}}/api/auth/refresh
+Content-Type: application/json
+
+{ "refresh_token": "{{login.response.body.$.refresh_token}}" }
+
+### 5. Sau mục 4, access token mới cũng phải bị 401
+GET {{host}}/api/admin/features
+Authorization: Bearer {{refresh.response.body.$.access_token}}
+
+
+### A. Create a draft page
+# @name page
+POST {{host}}/api/admin/pages
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "title": "Về chúng tôi", "slug": "ve-chung-toi", "seo_title": "Về Aura", "seo_description": "Giới thiệu công ty" }
+
+### B. Add a rich_text section (the <script> must be removed in the response)
+# @name sec
+POST {{host}}/api/admin/pages/{{page.response.body.$.id}}/sections
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "type": "rich_text", "content": { "html": "<p>Xin chào</p><script>alert(1)</script>" } }
+
+### C. Draft page must NOT be public (expect 404)
+GET {{host}}/api/public/pages/ve-chung-toi
+
+### D. Publish
+POST {{host}}/api/admin/pages/{{page.response.body.$.id}}/publish
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### E. Now public (expect 200 with sections)
+GET {{host}}/api/public/pages/ve-chung-toi
+
+### F. Duplicate slug (expect 409)
+POST {{host}}/api/admin/pages
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "title": "Trùng", "slug": "ve-chung-toi" }
+
+### G. Reserved slug (expect 400)
+POST {{host}}/api/admin/pages
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "title": "Admin", "slug": "admin" }
+
+### H. Menu: parent "Giới thiệu" with a child pointing at the page
+# @name menu1
+POST {{host}}/api/admin/menu
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "label": "Giới thiệu" }
+
+###
+POST {{host}}/api/admin/menu
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "label": "Về chúng tôi", "parent_id": "{{menu1.response.body.$.id}}", "page_id": "{{page.response.body.$.id}}" }
+
+### I. Public menu tree
+GET {{host}}/api/public/menu
+
+### J. Bad URL (expect 400)
+POST {{host}}/api/admin/menu
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "label": "Xấu", "url": "javascript:alert(1)" }
+
+
+### Test phase 2 
+### A. Create a category
+# @name cat
+POST {{host}}/api/admin/categories
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "name": "Công nghệ", "slug": "cong-nghe", "description": "Bài viết về công nghệ" }
+
+### B. Create a draft post (the <script> must be removed)
+# @name post
+POST {{host}}/api/admin/posts
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "title": "AI sẽ thay đổi phần mềm doanh nghiệp", "slug": "ai-thay-doi-phan-mem",
+  "excerpt": "Tóm tắt ngắn", "content": "<p>Nội dung bài viết</p><script>alert(1)</script>",
+  "category_ids": ["{{cat.response.body.$.id}}"] }
+
+### C. Draft must NOT be public (expect 404)
+GET {{host}}/api/public/blog/posts/ai-thay-doi-phan-mem
+
+### D. Publish
+POST {{host}}/api/admin/posts/{{post.response.body.$.id}}/publish
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### E. Public list and detail (expect 200, with category and related)
+GET {{host}}/api/public/blog/posts
+
+###
+GET {{host}}/api/public/blog/posts/ai-thay-doi-phan-mem
+
+### F. Filter and search
+GET {{host}}/api/public/blog/posts?category=cong-nghe&q=AI
+
+### G. Public categories (post_count = 1)
+GET {{host}}/api/public/blog/categories
+
+### H. Duplicate slug (expect 409)
+POST {{host}}/api/admin/posts
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "title": "Trùng", "slug": "ai-thay-doi-phan-mem", "content": "<p>x</p>" }
+
+### I. Publish an empty post (expect 400)
+# @name empty
+POST {{host}}/api/admin/posts
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "title": "Bài rỗng", "slug": "bai-rong" }
+
+###
+POST {{host}}/api/admin/posts/{{empty.response.body.$.id}}/publish
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### J. Archive: becomes 404 publicly
+POST {{host}}/api/admin/posts/{{post.response.body.$.id}}/archive
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+###
+GET {{host}}/api/public/blog/posts/ai-thay-doi-phan-mem
+
+### K. Admin list with filter and pagination
+GET {{host}}/api/admin/posts?status=archived&page=1&page_size=10
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### L. Delete the category: the post must remain (expect 200)
+DELETE {{host}}/api/admin/categories/{{cat.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+###
+GET {{host}}/api/admin/posts/{{post.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.access_token}}
