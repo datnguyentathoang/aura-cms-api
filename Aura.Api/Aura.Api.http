@@ -1,11 +1,12 @@
 @host = https://localhost:7186
 
 ### 1. Đăng nhập
+# Điền email và mật khẩu vào http-client.env.json.user (file này không được commit), rồi chọn môi trường dev ở góc trên bên phải
 # @name login
 POST {{host}}/api/auth/login
 Content-Type: application/json
 
-{ "email": "admin@gmail.com", "password": "123456" }
+{ "email": "{{AdminEmail}}", "password": "{{AdminPassword}}" }
 
 ### 2. Gọi API có token (phải ra danh sách)
 GET {{host}}/api/admin/features
