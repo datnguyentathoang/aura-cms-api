@@ -17,7 +17,6 @@ public static partial class PageRules
     [GeneratedRegex("^[a-z0-9]+(?:-[a-z0-9]+)*$")]
     private static partial Regex SlugRegex();
 
-<<<<<<< HEAD
     public static string? NormalizeSlug(string? input, out string error, bool checkReserved = true, int max = 80)
     {
         error = "";
@@ -28,18 +27,6 @@ public static partial class PageRules
             return null;
         }
         if (checkReserved && Reserved.Contains(s))
-=======
-    public static string? NormalizeSlug(string? input, out string error)
-    {
-        error = "";
-        var s = (input ?? "").Trim().ToLowerInvariant();
-        if (s.Length is < 1 or > 80 || !SlugRegex().IsMatch(s))
-        {
-            error = "Slug chỉ gồm chữ thường không dấu, số và dấu gạch ngang (tối đa 80 ký tự)";
-            return null;
-        }
-        if (Reserved.Contains(s))
->>>>>>> e046f5d99ac2852aa2f0406657b3e51b75159b48
         {
             error = "Slug này được hệ thống giữ lại, hãy chọn tên khác";
             return null;
@@ -47,11 +34,8 @@ public static partial class PageRules
         return s;
     }
 
-<<<<<<< HEAD
     public static string SanitizeHtml(string? html) => new HtmlSanitizer().Sanitize(html ?? "");
 
-=======
->>>>>>> e046f5d99ac2852aa2f0406657b3e51b75159b48
     public static string? Clean(string? s)
     {
         s = s?.Trim();
@@ -77,11 +61,9 @@ public static partial class PageRules
         {
             var node = JsonNode.Parse(text)!.AsObject();
             if (node["html"] is JsonValue v && v.TryGetValue<string>(out var html))
-<<<<<<< HEAD
-                node["html"] = SanitizeHtml(html); // Tái sử dụng helper SanitizeHtml vừa tạo ở đây
-=======
-                node["html"] = new HtmlSanitizer().Sanitize(html);
->>>>>>> e046f5d99ac2852aa2f0406657b3e51b75159b48
+            {
+                node["html"] = SanitizeHtml(html);
+            }
             text = node.ToJsonString();
         }
 
@@ -89,8 +71,4 @@ public static partial class PageRules
         content = doc.RootElement.Clone();
         return true;
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> e046f5d99ac2852aa2f0406657b3e51b75159b48
