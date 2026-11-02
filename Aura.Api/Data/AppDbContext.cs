@@ -18,12 +18,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Page> Pages => Set<Page>();
     public DbSet<PageSection> PageSections => Set<PageSection>();
     public DbSet<MenuItem> MenuItems => Set<MenuItem>();
-<<<<<<< HEAD
+
     public DbSet<Post> Posts => Set<Post>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<PostCategory> PostCategories => Set<PostCategory>();
-=======
->>>>>>> e046f5d99ac2852aa2f0406657b3e51b75159b48
+
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -54,7 +53,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         });
         b.Entity<MenuItem>().ToTable("menu_items");
 
-<<<<<<< HEAD
         b.Entity<Post>(e =>
         {
             e.ToTable("posts");
@@ -69,8 +67,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasOne(x => x.Category).WithMany(c => c.PostCategories).HasForeignKey(x => x.CategoryId).OnDelete(DeleteBehavior.Cascade);
         });
 
-=======
->>>>>>> e046f5d99ac2852aa2f0406657b3e51b75159b48
 
     }
 }
