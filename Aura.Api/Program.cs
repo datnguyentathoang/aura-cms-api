@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.HttpOverrides;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,8 +18,15 @@ builder.Services.AddOpenApi();
 builder.Services.AddHttpClient();
 builder.Services.AddMemoryCache();
 
+// Session pooler của Supabase chỉ cho một số kết nối có hạn, API trên máy và trên Render dùng chung.
+// Giới hạn pool để lúc đông, request xếp hàng chờ kết nối thay vì lỗi EMAXCONN.
+var dbConnection = new NpgsqlConnectionStringBuilder(builder.Configuration.GetConnectionString("Default"))
+{
+    MaxPoolSize = builder.Configuration.GetValue("Database:MaxPoolSize", 5),
+}.ConnectionString;
+
 builder.Services.AddDbContext<AppDbContext>(o =>
-    o.UseNpgsql(builder.Configuration.GetConnectionString("Default"))
+    o.UseNpgsql(dbConnection)
      .UseSnakeCaseNamingConvention());
 
 builder.Services.AddSingleton<KeyProtector>();
