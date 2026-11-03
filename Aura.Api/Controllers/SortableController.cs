@@ -1,5 +1,6 @@
 ﻿using Aura.Api.Data;
 using Aura.Api.Entities;
+using Aura.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,9 @@ public abstract class SortableController<T>(AppDbContext db) : ControllerBase
     where T : class, ISortable
 {
     private DbSet<T> Set => db.Set<T>();
+
+    // Lớp con ghi đè để kiểm tra và làm sạch dữ liệu trước khi lưu; trả về thông báo lỗi nếu không hợp lệ
+    protected virtual string? Validate(T input) => null;
 
     [HttpGet]
     public async Task<IActionResult> List() =>
@@ -28,6 +32,8 @@ public abstract class SortableController<T>(AppDbContext db) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] T input)
     {
+        if (Validate(input) is { } error) return BadRequest(new { error });
+
         input.Id = Guid.NewGuid();
         if (input.SortOrder <= 0)
             input.SortOrder = (await Set.MaxAsync(x => (int?)x.SortOrder) ?? 0) + 1;
@@ -46,6 +52,7 @@ public abstract class SortableController<T>(AppDbContext db) : ControllerBase
     {
         var item = await Set.FirstOrDefaultAsync(x => x.Id == id);
         if (item is null) return NotFound();
+        if (Validate(input) is { } error) return BadRequest(new { error });
 
         input.Id = id;
         var entry = db.Entry(item);
@@ -91,3 +98,20 @@ public class FeaturesController(AppDbContext db) : SortableController<Feature>(d
 public class WorkflowsController(AppDbContext db) : SortableController<Workflow>(db) { }
 public class ScreenshotsController(AppDbContext db) : SortableController<Screenshot>(db) { }
 public class FaqsController(AppDbContext db) : SortableController<Faq>(db) { }
+
+[Route("api/admin/team-members")]
+public class TeamMembersController(AppDbContext db) : SortableController<TeamMember>(db)
+{
+    protected override string? Validate(TeamMember input) => CollectionRules.Check(input);
+}
+
+public class TestimonialsController(AppDbContext db) : SortableController<Testimonial>(db)
+{
+    protected override string? Validate(Testimonial input) => CollectionRules.Check(input);
+}
+
+[Route("api/admin/pricing-plans")]
+public class PricingPlansController(AppDbContext db) : SortableController<PricingPlan>(db)
+{
+    protected override string? Validate(PricingPlan input) => CollectionRules.Check(input);
+}

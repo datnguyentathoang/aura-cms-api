@@ -171,3 +171,180 @@ Authorization: Bearer {{login.response.body.$.access_token}}
 ###
 GET {{host}}/api/admin/posts/{{post.response.body.$.id}}
 Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Test phase 3 (chạy lần lượt; mục P xoá hết dữ liệu thử)
+### A. No token (expect 401)
+GET {{host}}/api/admin/projects
+
+### B. Create a draft project with a gallery (the <script> must be removed)
+# @name project
+POST {{host}}/api/admin/projects
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "title": "Dự án thử", "slug": "du-an-thu", "client_name": "Khách hàng thử", "industry": "Bán lẻ",
+  "summary": "Tóm tắt ngắn", "content": "<p>Nội dung dự án</p><script>alert(1)</script>",
+  "thumbnail_url": "/logo.png",
+  "images": [ { "image_url": "/logo.png", "caption": "Ảnh một" }, { "image_url": "/hero.png" } ] }
+
+### C. Draft must NOT be public (expect 404)
+GET {{host}}/api/public/portfolio/projects/du-an-thu
+
+### D. Publish
+POST {{host}}/api/admin/projects/{{project.response.body.$.id}}/publish
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### E. Public detail (expect 200, no <script>, 2 images in order) and public list
+GET {{host}}/api/public/portfolio/projects/du-an-thu
+
+###
+GET {{host}}/api/public/portfolio/projects
+
+###
+GET {{host}}/api/public/portfolio/slugs
+
+### F. Duplicate slug (expect 409)
+POST {{host}}/api/admin/projects
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "title": "Trùng", "slug": "DU-AN-THU", "content": "<p>x</p>" }
+
+### G. Unsafe gallery image (expect 400)
+POST {{host}}/api/admin/projects
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "title": "Xấu", "slug": "du-an-xau", "images": [ { "image_url": "javascript:alert(1)" } ] }
+
+### H. Publish an empty project (expect 400)
+# @name emptyProject
+POST {{host}}/api/admin/projects
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "title": "Dự án rỗng", "slug": "du-an-rong" }
+
+###
+POST {{host}}/api/admin/projects/{{emptyProject.response.body.$.id}}/publish
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### I. Move the empty project up (expect 204; it comes first in the admin list)
+POST {{host}}/api/admin/projects/{{emptyProject.response.body.$.id}}/move?direction=up
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+###
+GET {{host}}/api/admin/projects
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### J. Update replaces the gallery (admin detail must show 1 image, status still published)
+PUT {{host}}/api/admin/projects/{{project.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "title": "Dự án thử đã sửa", "slug": "du-an-thu", "content": "<p>Nội dung mới</p>",
+  "images": [ { "image_url": "/moi.png", "caption": "Ảnh mới" } ] }
+
+###
+GET {{host}}/api/admin/projects/{{project.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### K. Unpublish: becomes 404 publicly
+POST {{host}}/api/admin/projects/{{project.response.body.$.id}}/unpublish
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+###
+GET {{host}}/api/public/portfolio/projects/du-an-thu
+
+### L. Team member, unsafe photo (expect 400), public list
+# @name member
+POST {{host}}/api/admin/team-members
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "name": "  Thành viên thử  ", "role": "Kỹ sư", "bio": "Giới thiệu ngắn", "photo_url": "/logo.png" }
+
+###
+POST {{host}}/api/admin/team-members
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "name": "Xấu", "photo_url": "javascript:alert(1)" }
+
+###
+GET {{host}}/api/public/team
+
+### M. Hide the member: disappears from the public list
+PUT {{host}}/api/admin/team-members/{{member.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "name": "Thành viên thử", "role": "Kỹ sư", "is_published": false }
+
+###
+GET {{host}}/api/public/team
+
+### N. Testimonial and public list
+# @name testimonial
+POST {{host}}/api/admin/testimonials
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "quote": "Câu đánh giá thử", "name": "Khách thử", "role": "Giám đốc", "avatar_url": "/logo.png" }
+
+###
+GET {{host}}/api/public/testimonials
+
+### O. Pricing plan: blank features are removed, unsafe link (expect 400), update keeps the new features
+# @name plan
+POST {{host}}/api/admin/pricing-plans
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "name": "Gói thử", "price": "Liên hệ", "period": "tháng", "description": "Mô tả gói",
+  "features": ["Quyền lợi một", "   ", "Quyền lợi hai"], "highlighted": true,
+  "cta_text": "Liên hệ", "cta_link": "/#contact" }
+
+###
+POST {{host}}/api/admin/pricing-plans
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "name": "Xấu", "cta_link": "javascript:alert(1)" }
+
+###
+PUT {{host}}/api/admin/pricing-plans/{{plan.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "name": "Gói thử", "features": ["Quyền lợi mới"] }
+
+###
+GET {{host}}/api/public/pricing
+
+### P. Clean up everything created above (expect 204 each)
+DELETE {{host}}/api/admin/projects/{{project.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+###
+DELETE {{host}}/api/admin/projects/{{emptyProject.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+###
+DELETE {{host}}/api/admin/team-members/{{member.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+###
+DELETE {{host}}/api/admin/testimonials/{{testimonial.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+###
+DELETE {{host}}/api/admin/pricing-plans/{{plan.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Q. A page cannot use the reserved slug "pricing" (expect 400)
+POST {{host}}/api/admin/pages
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "title": "Bảng giá", "slug": "pricing" }

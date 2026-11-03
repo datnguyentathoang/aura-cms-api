@@ -12,7 +12,7 @@ public static partial class PageRules
 
     // Slug trùng tên đường dẫn có sẵn của website sẽ gây xung đột
     private static readonly HashSet<string> Reserved = new(StringComparer.Ordinal)
-    { "admin", "api", "blog", "portfolio", "contact", "home", "health", "login", "sitemap", "robots", "favicon", "static" };
+    { "admin", "api", "blog", "portfolio", "pricing", "contact", "home", "health", "login", "sitemap", "robots", "favicon", "static" };
 
     [GeneratedRegex("^[a-z0-9]+(?:-[a-z0-9]+)*$")]
     private static partial Regex SlugRegex();

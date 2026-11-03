@@ -187,3 +187,72 @@ public class PostCategory
     public Category? Category { get; set; }
 
 }
+
+public class Project : ISortable
+{
+    public Guid Id { get; set; }
+    public string Title { get; set; } = "";
+    public string Slug { get; set; } = "";
+    public string? ClientName { get; set; }
+    public string? Industry { get; set; }
+    public string? Summary { get; set; }
+    public string Content { get; set; } = "";
+    public string? ThumbnailUrl { get; set; }
+    public string Status { get; set; } = "draft";
+    public string? SeoTitle { get; set; }
+    public string? SeoDescription { get; set; }
+    public int SortOrder { get; set; }
+    public DateTimeOffset? PublishedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+    public List<ProjectImage> Images { get; set; } = new();
+}
+
+public class ProjectImage
+{
+    public Guid Id { get; set; }
+    public Guid ProjectId { get; set; }
+    public string ImageUrl { get; set; } = "";
+    public string? Caption { get; set; }
+    public int SortOrder { get; set; }
+}
+
+public class TeamMember : ISortable
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = "";
+    public string? Role { get; set; }
+    public string? Bio { get; set; }
+    public string? PhotoUrl { get; set; }
+    public int SortOrder { get; set; }
+    public bool IsPublished { get; set; } = true;
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+public class Testimonial : ISortable
+{
+    public Guid Id { get; set; }
+    public string Quote { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string? Role { get; set; }
+    public string? AvatarUrl { get; set; }
+    public int SortOrder { get; set; }
+    public bool IsPublished { get; set; } = true;
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+public class PricingPlan : ISortable
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = "";
+    public string? Price { get; set; }
+    public string? Period { get; set; }
+    public string? Description { get; set; }
+    public List<string> Features { get; set; } = new();
+    public bool Highlighted { get; set; }
+    public string? CtaText { get; set; }
+    public string? CtaLink { get; set; }
+    public int SortOrder { get; set; }
+    public bool IsPublished { get; set; } = true;
+    public DateTimeOffset CreatedAt { get; set; }
+}

@@ -23,6 +23,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<PostCategory> PostCategories => Set<PostCategory>();
 
+    public DbSet<Project> Projects => Set<Project>();
+    public DbSet<ProjectImage> ProjectImages => Set<ProjectImage>();
+    public DbSet<TeamMember> TeamMembers => Set<TeamMember>();
+    public DbSet<Testimonial> Testimonials => Set<Testimonial>();
+    public DbSet<PricingPlan> PricingPlans => Set<PricingPlan>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -66,6 +71,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasOne(x => x.Post).WithMany(p => p.PostCategories).HasForeignKey(x => x.PostId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.Category).WithMany(c => c.PostCategories).HasForeignKey(x => x.CategoryId).OnDelete(DeleteBehavior.Cascade);
         });
+
+        b.Entity<Project>(e =>
+        {
+            e.ToTable("projects");
+            e.HasMany(p => p.Images).WithOne().HasForeignKey(i => i.ProjectId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<ProjectImage>().ToTable("project_images");
+        b.Entity<TeamMember>().ToTable("team_members");
+        b.Entity<Testimonial>().ToTable("testimonials");
+        b.Entity<PricingPlan>().ToTable("pricing_plans");
 
 
     }
