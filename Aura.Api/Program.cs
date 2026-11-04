@@ -32,6 +32,16 @@ builder.Services.AddDbContext<AppDbContext>(o =>
 builder.Services.AddSingleton<KeyProtector>();
 builder.Services.AddSingleton<SessionKeyCache>();
 builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<KnowledgeService>();
+builder.Services.AddScoped<ChatService>();
+
+// Mặc định dùng Mock: không gọi dịch vụ ngoài. Chỉ dùng AI thật khi có đủ provider, key và model
+var ai = builder.Configuration.GetSection("Ai");
+if (string.Equals(ai["Provider"], "gemini", StringComparison.OrdinalIgnoreCase)
+    && !string.IsNullOrWhiteSpace(ai["ApiKey"]) && !string.IsNullOrWhiteSpace(ai["Model"]))
+    builder.Services.AddSingleton<IChatProvider, GeminiChatProvider>();
+else
+    builder.Services.AddSingleton<IChatProvider, MockChatProvider>();
 
 var origins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>()
               ?? new[] { "http://localhost:3000" };
@@ -73,6 +83,19 @@ builder.Services.AddRateLimiter(o =>
             PermitLimit = 10,
             Window = TimeSpan.FromMinutes(1),
         }));
+
+    // Khi biết IP khách (có Chat:ProxyKey) giới hạn theo từng khách; nếu không thì giới hạn rộng hơn vì nhiều khách chung IP của Next.js
+    RateLimitPartition<string> ChatLimit(HttpContext ctx, int perVisitor)
+    {
+        var (key, known) = ChatRules.Visitor(ctx, builder.Configuration);
+        return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = known ? perVisitor : perVisitor * 5,
+            Window = TimeSpan.FromMinutes(1),
+        });
+    }
+    o.AddPolicy("chat", ctx => ChatLimit(ctx, builder.Configuration.GetValue("Chat:PerMinute", 12)));
+    o.AddPolicy("chat-lead", ctx => ChatLimit(ctx, 5));
 });
 
 // Render đứng trước API như một proxy: lấy đúng IP và giao thức của người gọi

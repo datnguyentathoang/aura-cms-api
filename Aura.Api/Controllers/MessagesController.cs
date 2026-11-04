@@ -20,6 +20,7 @@ public class MessagesController(AppDbContext db) : ControllerBase
         var m = await db.ContactMessages.FirstOrDefaultAsync(x => x.Id == id);
         if (m is null) return NotFound();
         m.IsHandled = value;
+        m.Status = value ? (m.Status == "new" ? "contacted" : m.Status) : "new";
         await db.SaveChangesAsync();
         return NoContent();
     }

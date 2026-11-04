@@ -348,3 +348,109 @@ Authorization: Bearer {{login.response.body.$.access_token}}
 Content-Type: application/json
 
 { "title": "Bảng giá", "slug": "pricing" }
+
+### Test phase 4 (chạy lần lượt sau khi chạy 006_leads_ai.sql; mục M xoá dữ liệu thử và tắt trợ lý)
+### A. No token (expect 401)
+GET {{host}}/api/admin/leads
+
+### B. Assistant settings: off by default
+# @name settings
+GET {{host}}/api/admin/ai/settings
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### C. Public config says off, sending is refused (expect 403)
+GET {{host}}/api/public/chat/config
+
+###
+POST {{host}}/api/public/chat/messages
+Content-Type: application/json
+
+{ "message": "xin chào" }
+
+### D. Turn the assistant on
+PUT {{host}}/api/admin/ai/settings
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "bot_name": "Trợ lý Aura", "welcome_message": "Xin chào, mình là trợ lý của Aura.", "fallback_message": "Mình chưa có thông tin về việc này. Bạn để lại liên hệ nhé.", "is_enabled": true, "daily_message_limit": 300, "session_message_limit": 30 }
+
+### E. Status: provider and what the assistant knows
+GET {{host}}/api/admin/ai/status
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### F. Ask about published content (reply and sources from your posts or FAQ). Saves session_token
+# @name chat
+POST {{host}}/api/public/chat/messages
+Content-Type: application/json
+
+{ "message": "Phần mềm quản lý tồn kho như thế nào?", "page_url": "/blog" }
+
+### G. Off-topic question (expect the fallback message, suggest_lead true, no sources)
+POST {{host}}/api/public/chat/messages
+X-Chat-Session: {{chat.response.body.$.session_token}}
+Content-Type: application/json
+
+{ "message": "Thời tiết Hà Nội hôm nay thế nào?" }
+
+### H. History needs the token (expect 2 turns, then an empty list without it)
+GET {{host}}/api/public/chat/messages
+X-Chat-Session: {{chat.response.body.$.session_token}}
+
+###
+GET {{host}}/api/public/chat/messages
+
+### I. Leave contact: no phone or email (expect 400), then valid
+POST {{host}}/api/public/chat/lead
+X-Chat-Session: {{chat.response.body.$.session_token}}
+Content-Type: application/json
+
+{ "name": "Khách thử" }
+
+###
+POST {{host}}/api/public/chat/lead
+X-Chat-Session: {{chat.response.body.$.session_token}}
+Content-Type: application/json
+
+{ "name": "Khách thử Phase 4", "phone": "0900 000 000" }
+
+### J. The lead appears with source chatbot
+# @name leads
+GET {{host}}/api/admin/leads?source=chatbot&q=Khách thử Phase 4
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### K. Update status and notes, bad status (expect 400)
+PUT {{host}}/api/admin/leads/{{leads.response.body.$.items[0].id}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "status": "contacted", "notes": "Ghi chú thử" }
+
+###
+PUT {{host}}/api/admin/leads/{{leads.response.body.$.items[0].id}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "status": "khong-hop-le" }
+
+### L. Conversation list and transcript (no token_hash anywhere)
+GET {{host}}/api/admin/chats
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+###
+GET {{host}}/api/admin/chats/{{leads.response.body.$.items[0].chat_session_id}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### M. Clean up: delete the lead and the chat (expect 204 each), turn the assistant off
+DELETE {{host}}/api/admin/chats/{{leads.response.body.$.items[0].chat_session_id}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+###
+DELETE {{host}}/api/admin/leads/{{leads.response.body.$.items[0].id}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+###
+PUT {{host}}/api/admin/ai/settings
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{ "bot_name": "Trợ lý Aura", "welcome_message": "Xin chào, mình là trợ lý của Aura.", "fallback_message": "Mình chưa có thông tin về việc này. Bạn để lại liên hệ nhé.", "is_enabled": false, "daily_message_limit": 300, "session_message_limit": 30 }

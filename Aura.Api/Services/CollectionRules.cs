@@ -46,6 +46,19 @@ public static class CollectionRules
             ?? BadUrl(t.AvatarUrl, "Ảnh đại diện");
     }
 
+    public static string? Check(KnowledgeDocument d)
+    {
+        d.Title = d.Title.Trim();
+        d.Content = d.Content.Trim();
+        d.Url = PageRules.Clean(d.Url);
+
+        return Missing(d.Title, "Tiêu đề")
+            ?? TooLong(d.Title, 200, "Tiêu đề")
+            ?? Missing(d.Content, "Nội dung")
+            ?? TooLong(d.Content, 8000, "Nội dung")
+            ?? BadUrl(d.Url, "Đường dẫn");
+    }
+
     public static string? Check(PricingPlan p)
     {
         p.Name = p.Name.Trim();

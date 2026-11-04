@@ -29,6 +29,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Testimonial> Testimonials => Set<Testimonial>();
     public DbSet<PricingPlan> PricingPlans => Set<PricingPlan>();
 
+    public DbSet<ChatSession> ChatSessions => Set<ChatSession>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+    public DbSet<KnowledgeDocument> KnowledgeDocuments => Set<KnowledgeDocument>();
+    public DbSet<AiSettings> AiSettings => Set<AiSettings>();
+
     protected override void OnModelCreating(ModelBuilder b)
     {
         b.Entity<Hero>(e => { e.ToTable("hero"); e.Property(x => x.Id).ValueGeneratedNever(); });
@@ -81,6 +86,21 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         b.Entity<TeamMember>().ToTable("team_members");
         b.Entity<Testimonial>().ToTable("testimonials");
         b.Entity<PricingPlan>().ToTable("pricing_plans");
+
+        b.Entity<ChatSession>(e =>
+        {
+            e.ToTable("chat_sessions");
+            e.HasMany(s => s.Messages).WithOne().HasForeignKey(m => m.SessionId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<ChatMessage>(e =>
+        {
+            e.ToTable("chat_messages");
+            e.Property(x => x.Sources).HasColumnType("jsonb");
+        });
+        b.Entity<KnowledgeDocument>().ToTable("knowledge_documents");
+        b.Entity<AiSettings>(e => { e.ToTable("ai_settings"); e.Property(x => x.Id).ValueGeneratedNever(); });
+        b.Entity<ContactMessage>()
+            .HasOne<ChatSession>().WithMany().HasForeignKey(m => m.ChatSessionId).OnDelete(DeleteBehavior.SetNull);
 
 
     }

@@ -89,6 +89,12 @@ public class ContactMessage
     public string? Message { get; set; }
     public bool IsHandled { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
+    public string? Phone { get; set; }
+    public string Status { get; set; } = "new";
+    public string Source { get; set; } = "contact_form";
+    public string? Notes { get; set; }
+    public Guid? ChatSessionId { get; set; }
+    public DateTimeOffset? UpdatedAt { get; set; }
 }
 
 public class AdminUser
@@ -255,4 +261,49 @@ public class PricingPlan : ISortable
     public int SortOrder { get; set; }
     public bool IsPublished { get; set; } = true;
     public DateTimeOffset CreatedAt { get; set; }
+}
+
+public class ChatSession
+{
+    public Guid Id { get; set; }
+    public string TokenHash { get; set; } = "";
+    public string? PageUrl { get; set; }
+    public int MessageCount { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset LastMessageAt { get; set; }
+    public List<ChatMessage> Messages { get; set; } = new();
+}
+
+public class ChatMessage
+{
+    public Guid Id { get; set; }
+    public Guid SessionId { get; set; }
+    public string Role { get; set; } = "user";
+    public string Content { get; set; } = "";
+    public JsonElement Sources { get; set; }
+    public string? Provider { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+public class KnowledgeDocument : ISortable
+{
+    public Guid Id { get; set; }
+    public string Title { get; set; } = "";
+    public string Content { get; set; } = "";
+    public string? Url { get; set; }
+    public int SortOrder { get; set; }
+    public bool IsPublished { get; set; } = true;
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+public class AiSettings
+{
+    public int Id { get; set; }
+    public bool IsEnabled { get; set; }
+    public string BotName { get; set; } = "";
+    public string WelcomeMessage { get; set; } = "";
+    public string FallbackMessage { get; set; } = "";
+    public int DailyMessageLimit { get; set; }
+    public int SessionMessageLimit { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
 }

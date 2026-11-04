@@ -110,6 +110,12 @@ public class TestimonialsController(AppDbContext db) : SortableController<Testim
     protected override string? Validate(Testimonial input) => CollectionRules.Check(input);
 }
 
+[Route("api/admin/knowledge-documents")]
+public class KnowledgeDocumentsController(AppDbContext db) : SortableController<KnowledgeDocument>(db)
+{
+    protected override string? Validate(KnowledgeDocument input) => CollectionRules.Check(input);
+}
+
 [Route("api/admin/pricing-plans")]
 public class PricingPlansController(AppDbContext db) : SortableController<PricingPlan>(db)
 {
