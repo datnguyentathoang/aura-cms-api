@@ -95,7 +95,6 @@ public abstract class SortableController<T>(AppDbContext db) : ControllerBase
 }
 
 public class FeaturesController(AppDbContext db) : SortableController<Feature>(db) { }
-public class WorkflowsController(AppDbContext db) : SortableController<Workflow>(db) { }
 public class ScreenshotsController(AppDbContext db) : SortableController<Screenshot>(db) { }
 public class FaqsController(AppDbContext db) : SortableController<Faq>(db) { }
 

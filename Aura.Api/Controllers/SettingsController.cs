@@ -45,7 +45,6 @@ public class SettingsController(AppDbContext db) : ControllerBase
     public async Task<IActionResult> Stats() => Ok(new
     {
         features = await db.Features.CountAsync(),
-        workflows = await db.Workflows.CountAsync(),
         screenshots = await db.Screenshots.CountAsync(),
         faqs = await db.Faqs.CountAsync(),
         unread_messages = await db.ContactMessages.CountAsync(m => !m.IsHandled),

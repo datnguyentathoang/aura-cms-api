@@ -25,12 +25,6 @@ public class PublicController(AppDbContext db) : ControllerBase
             .OrderBy(x => x.SortOrder).ThenBy(x => x.Id)
             .ToListAsync();
 
-        var workflows = await db.Workflows.AsNoTracking()
-            .Where(x => x.IsPublished)
-            .OrderBy(x => x.SortOrder).ThenBy(x => x.Id)
-            .Include(w => w.WorkflowSteps.OrderBy(s => s.StepOrder))
-            .ToListAsync();
-
         var screenshots = await db.Screenshots.AsNoTracking()
             .Where(x => x.IsPublished)
             .OrderBy(x => x.SortOrder).ThenBy(x => x.Id)
@@ -43,7 +37,7 @@ public class PublicController(AppDbContext db) : ControllerBase
 
         var contact = await db.ContactInfo.AsNoTracking().FirstOrDefaultAsync(c => c.Id == 1);
 
-        return Ok(new { hero, features, workflows, screenshots, faqs, contact });
+        return Ok(new { hero, features, screenshots, faqs, contact });
     }
 
     [HttpPost("messages")]

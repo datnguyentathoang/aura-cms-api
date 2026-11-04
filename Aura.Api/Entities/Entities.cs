@@ -33,26 +33,6 @@ public class Feature : ISortable
     public DateTimeOffset CreatedAt { get; set; }
 }
 
-public class Workflow : ISortable
-{
-    public Guid Id { get; set; }
-    public string Title { get; set; } = "";
-    public string? Description { get; set; }
-    public string? ImageUrl { get; set; }
-    public int SortOrder { get; set; }
-    public bool IsPublished { get; set; } = true;
-    public List<WorkflowStep> WorkflowSteps { get; set; } = new();
-}
-
-public class WorkflowStep
-{
-    public Guid Id { get; set; }
-    public Guid WorkflowId { get; set; }
-    public int StepOrder { get; set; }
-    public string Title { get; set; } = "";
-    public string? Description { get; set; }
-}
-
 public class Screenshot : ISortable
 {
     public Guid Id { get; set; }

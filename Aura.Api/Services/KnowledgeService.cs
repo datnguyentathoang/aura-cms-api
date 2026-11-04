@@ -35,11 +35,6 @@ public sealed class KnowledgeService(AppDbContext db, IMemoryCache cache, IConfi
         var features = await db.Features.AsNoTracking().Where(x => x.IsPublished).OrderBy(x => x.SortOrder).ToListAsync();
         sources.AddRange(features.Select(x => new KnowledgeSource("feature", x.Title, "/#features", Lines(x.Title, x.Description))));
 
-        var workflows = await db.Workflows.AsNoTracking().Where(x => x.IsPublished).OrderBy(x => x.SortOrder)
-            .Include(w => w.WorkflowSteps.OrderBy(s => s.StepOrder)).ToListAsync();
-        sources.AddRange(workflows.Select(w => new KnowledgeSource("workflow", w.Title, "/#workflows",
-            Lines([w.Title, w.Description, .. w.WorkflowSteps.Select(s => Pair(s.Title, s.Description))]))));
-
         var faqs = await db.Faqs.AsNoTracking().Where(x => x.IsPublished).OrderBy(x => x.SortOrder).ToListAsync();
         sources.AddRange(faqs.Select(x => new KnowledgeSource("faq", x.Question, "/#faq", Lines(x.Question, x.Answer))));
 

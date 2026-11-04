@@ -10,7 +10,7 @@ namespace Aura.Api.Controllers;
 public class UploadController(IHttpClientFactory http, IConfiguration cfg) : ControllerBase
 {
     private const long MaxBytes = 4 * 1024 * 1024;
-    private static readonly HashSet<string> Folders = ["hero", "features", "workflows", "screenshots", "projects", "team_members", "testimonials", "misc"];
+    private static readonly HashSet<string> Folders = ["hero", "features", "screenshots", "projects", "team_members", "testimonials", "misc"];
 
     private static string? Detect(byte[] h) =>
         h.Length >= 4 && h[0] == 0x89 && h[1] == 0x50 && h[2] == 0x4E && h[3] == 0x47 ? ".png" :
